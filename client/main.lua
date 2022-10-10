@@ -134,29 +134,6 @@ CreateThread(function()
     SetWeaponsNoAutoswap(true)
 end)
 
-local ammoThread = 500
-CreateThread(function()
-    while true do
-        local ped = PlayerPedId()
-        local isArmed = IsPedArmed(ped, 7)
-        if isArmed then
-            ammoThread = 5
-            if (IsControlJustReleased(0, 24) or IsDisabledControlJustReleased(0, 24)) then
-                local weapon = GetSelectedPedWeapon(ped)
-                local ammo = GetAmmoInPedWeapon(ped, weapon)
-                TriggerServerEvent("weapons:server:UpdateWeaponAmmo", CurrentWeaponData, tonumber(ammo))
-                if MultiplierAmount > 0 then
-                    TriggerServerEvent("weapons:server:UpdateWeaponQuality", CurrentWeaponData, MultiplierAmount)
-                    MultiplierAmount = 0
-                end
-            end
-        else
-            ammoThread = 500
-        end
-        Wait(ammoThread)
-    end
-end)
-
 local shootingThread = 500
 CreateThread(function()
     while true do
@@ -255,4 +232,22 @@ CreateThread(function()
         end
         Wait(0)
     end
+end)
+
+---Event that is triggered for gunshots.
+---@param witnesses table  array of peds that witnessed the shots
+---@param ped number  the ped that shot the gun
+AddEventHandler("CEventGunShot", function(witnesses, ped)
+    -- The ped that shot the gun must be the player.
+    if PlayerPedId() ~= ped then return end
+    -- This event can be triggered multiple times for a single gunshot,
+    -- so ignore if the first ped in witnesses is not the player ped.
+    -- (it's always first in the array and shows up only on the first event for the gunshot)
+    if witnesses[1] ~= ped then return end
+    local weapon = GetSelectedPedWeapon(ped)
+    local ammo = GetAmmoInPedWeapon(ped, weapon)
+    TriggerServerEvent("weapons:server:UpdateWeaponAmmo", CurrentWeaponData, tonumber(ammo))
+    if MultiplierAmount <= 0 then return end
+    TriggerServerEvent("weapons:server:UpdateWeaponQuality", CurrentWeaponData, MultiplierAmount)
+    MultiplierAmount = 0
 end)
