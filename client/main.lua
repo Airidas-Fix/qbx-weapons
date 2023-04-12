@@ -1,5 +1,5 @@
 -- Variables
-local QBCore = exports['qb-core']:GetCoreObject()
+local QBCore = exports['qbx-core']:GetCoreObject()
 local PlayerData = QBCore.Functions.GetPlayerData()
 local CurrentWeaponData, CanShoot, MultiplierAmount = {}, true, 0
 
